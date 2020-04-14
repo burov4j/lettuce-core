@@ -26,6 +26,8 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.InflaterInputStream;
 
 import io.lettuce.core.internal.LettuceAssert;
+import org.xerial.snappy.SnappyInputStream;
+import org.xerial.snappy.SnappyOutputStream;
 
 /**
  * A compressing/decompressing {@link RedisCodec} that wraps a typed {@link RedisCodec codec} and compresses values using GZIP
@@ -109,6 +111,10 @@ public abstract class CompressionCodec {
                     if (compressionType == CompressionType.DEFLATE) {
                         compressor = new DeflaterOutputStream(outputStream);
                     }
+
+                    if (compressionType == CompressionType.SNAPPY) {
+                        compressor = new SnappyOutputStream(outputStream);
+                    }
                     copy(sourceStream, compressor);
                 } finally {
 
@@ -140,6 +146,10 @@ public abstract class CompressionCodec {
 
                     if (compressionType == CompressionType.DEFLATE) {
                         decompressor = new InflaterInputStream(sourceStream);
+                    }
+
+                    if (compressionType == CompressionType.SNAPPY) {
+                        decompressor = new SnappyInputStream(sourceStream);
                     }
 
                     copy(decompressor, outputStream);
@@ -181,7 +191,7 @@ public abstract class CompressionCodec {
     }
 
     public enum CompressionType {
-        GZIP, DEFLATE;
+        GZIP, DEFLATE, SNAPPY;
     }
 
 }

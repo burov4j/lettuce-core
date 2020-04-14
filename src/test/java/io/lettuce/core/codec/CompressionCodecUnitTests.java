@@ -32,6 +32,7 @@ class CompressionCodecUnitTests {
     private byte[] keyGzipBytes = new byte[] { 31, -117, 8, 0, 0, 0, 0, 0, 0, 0, -53, 78, -83, 4, 0, -87, -85, -112, -118, 3, 0,
             0, 0 };
     private byte[] keyDeflateBytes = new byte[] { 120, -100, -53, 78, -83, 4, 0, 2, -121, 1, 74 };
+    private byte[] keySnappyBytes = new byte[] { -126, 83, 78, 65, 80, 80, 89, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 5, 3, 8, 107, 101, 121 };
     private String value = "value";
 
     @Test
@@ -74,6 +75,17 @@ class CompressionCodecUnitTests {
 
         assertThatThrownBy(() -> sut.decodeValue(ByteBuffer.wrap(keyGzipBytes)))
                 .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void snappyValueTest() {
+        RedisCodec<String, String> sut = CompressionCodec.valueCompressor(StringCodec.UTF8,
+                CompressionCodec.CompressionType.SNAPPY);
+        ByteBuffer byteBuffer = sut.encodeValue(key);
+        assertThat(toBytes(byteBuffer.duplicate())).isEqualTo(keySnappyBytes);
+
+        String s = sut.decodeValue(ByteBuffer.wrap(keySnappyBytes));
+        assertThat(s).isEqualTo(key);
     }
 
     private String toString(ByteBuffer buffer) {

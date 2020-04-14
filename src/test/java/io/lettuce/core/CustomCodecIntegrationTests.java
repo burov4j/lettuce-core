@@ -120,6 +120,18 @@ class CustomCodecIntegrationTests extends TestSupport {
     }
 
     @Test
+    void testSnappyCompressedJavaSerializer() {
+        RedisCommands<String, Object> connection = client
+                .connect(CompressionCodec.valueCompressor(new SerializedObjectCodec(), CompressionCodec.CompressionType.SNAPPY))
+                .sync();
+        List<String> list = list("one", "two");
+        connection.set(key, list);
+        assertThat(connection.get(key)).isEqualTo(list);
+
+        connection.getStatefulConnection().close();
+    }
+
+    @Test
     void testEncryptedCodec() {
 
         RedisCommands<String, String> connection = client.connect(CipherCodec.forValues(StringCodec.UTF8, encrypt, decrypt))
